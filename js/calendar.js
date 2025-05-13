@@ -32,36 +32,41 @@ async function renderCalendar(date) {
   currentFetchController = new AbortController()
   const signal = currentFetchController.signal
 
-  // Clear calendar grid
-  calendarGrid.innerHTML = ""
-
-  // Get Monday of the week
-  const monday = getMonday(date)
-
-  // Create array of dates for the week
-  const weekDates = []
-  for (let i = 0; i < 7; i++) {
-    const currentDate = new Date(monday)
-    currentDate.setDate(monday.getDate() + i)
-    weekDates.push(currentDate.toISOString().split('T')[0])
-  }
-
   try {
+    // Clear calendar grid first
+    while (calendarGrid.firstChild) {
+      calendarGrid.removeChild(calendarGrid.firstChild)
+    }
+
+    // Get Monday of the week
+    const monday = getMonday(date)
+
+    // Create array of dates for the week
+    const weekDates = []
+    const dayCells = []
+    
+    for (let i = 0; i < 7; i++) {
+      const currentDate = new Date(monday)
+      currentDate.setDate(monday.getDate() + i)
+      weekDates.push(currentDate.toISOString().split('T')[0])
+      
+      // Create day cell structure (without offers yet)
+      const dayCell = createEmptyDayCell(currentDate)
+      dayCells.push(dayCell)
+      calendarGrid.appendChild(dayCell)
+    }
+
     // Fetch all offers for the week in a single request
     const weekOffers = await getOffersForDates(weekDates, signal)
 
     // Only proceed if this is still the current fetch request
     if (!signal.aborted) {
-      // Create and append all day cells
-      for (let i = 0; i < 7; i++) {
-        const currentDate = new Date(monday)
-        currentDate.setDate(monday.getDate() + i)
-        const dateString = currentDate.toISOString().split('T')[0]
-        
-        // Create day cell with pre-fetched offers
-        const dayCell = await createDayCell(currentDate, weekOffers[dateString] || [], signal)
-        calendarGrid.appendChild(dayCell)
-      }
+      // Update each day cell with its offers
+      dayCells.forEach((dayCell, index) => {
+        const dateString = weekDates[index]
+        const offers = weekOffers[dateString] || []
+        updateDayCellOffers(dayCell, offers)
+      })
     }
   } catch (error) {
     // Only show error if it's not an abort error
@@ -78,8 +83,8 @@ async function renderCalendar(date) {
   }
 }
 
-// Create a day cell
-async function createDayCell(date, offers, signal) {
+// Create an empty day cell without offers
+function createEmptyDayCell(date) {
   const dayCell = document.createElement("div")
   dayCell.className = "day-cell"
 
@@ -119,9 +124,18 @@ async function createDayCell(date, offers, signal) {
   dayHeader.appendChild(addButton)
   dayCell.appendChild(dayHeader)
 
-  // Offers container
+  // Add empty offers container
   const offersContainer = document.createElement("div")
   offersContainer.className = "offers-container"
+  dayCell.appendChild(offersContainer)
+
+  return dayCell
+}
+
+// Update a day cell with offers
+function updateDayCellOffers(dayCell, offers) {
+  const offersContainer = dayCell.querySelector(".offers-container")
+  offersContainer.innerHTML = "" // Clear existing offers
 
   if (offers.length === 0) {
     const noOffers = document.createElement("div")
@@ -129,19 +143,8 @@ async function createDayCell(date, offers, signal) {
     noOffers.textContent = "No offers"
     offersContainer.appendChild(noOffers)
   } else {
-    // Deduplicate offers based on date+time+title combination
-    const uniqueOffers = offers.reduce((acc, offer) => {
-      const key = `${offer.date}_${offer.startTime}_${offer.endTime}_${offer.title}`
-      if (!acc.has(key)) {
-        acc.set(key, offer)
-      }
-      return acc
-    }, new Map())
-
-    // Convert back to array and sort by start time
-    const sortedOffers = Array.from(uniqueOffers.values()).sort((a, b) => 
-      a.startTime.localeCompare(b.startTime)
-    )
+    // Sort offers by start time
+    const sortedOffers = offers.sort((a, b) => a.startTime.localeCompare(b.startTime))
 
     // Add offers to container
     sortedOffers.forEach((offer) => {
@@ -149,9 +152,6 @@ async function createDayCell(date, offers, signal) {
       offersContainer.appendChild(offerItem)
     })
   }
-
-  dayCell.appendChild(offersContainer)
-  return dayCell
 }
 
 // Create an offer item
