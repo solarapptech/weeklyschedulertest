@@ -10,6 +10,7 @@ let currentFetchController = null
 
 // Loading state
 let isLoading = false
+let dayCellsCreated = 0
 
 // Initialize calendar
 function initCalendar() {
@@ -18,8 +19,15 @@ function initCalendar() {
 
 // Render calendar for a specific date
 async function renderCalendar(date) {
+  // Prevent new render if previous render isn't complete
+  if (isLoading) {
+    return
+  }
+
   // Set loading state to true
   isLoading = true
+  dayCellsCreated = 0
+  
   // Dispatch loading state change event
   window.dispatchEvent(new CustomEvent('calendarLoadingStateChange', { detail: { isLoading: true } }))
 
@@ -54,19 +62,23 @@ async function renderCalendar(date) {
       const dayCell = createEmptyDayCell(currentDate)
       dayCells.push(dayCell)
       calendarGrid.appendChild(dayCell)
+      dayCellsCreated++
     }
 
-    // Fetch all offers for the week in a single request
-    const weekOffers = await getOffersForDates(weekDates, signal)
+    // Only proceed with fetching offers if all day cells are created
+    if (dayCellsCreated === 7) {
+      // Fetch all offers for the week in a single request
+      const weekOffers = await getOffersForDates(weekDates, signal)
 
-    // Only proceed if this is still the current fetch request
-    if (!signal.aborted) {
-      // Update each day cell with its offers
-      dayCells.forEach((dayCell, index) => {
-        const dateString = weekDates[index]
-        const offers = weekOffers[dateString] || []
-        updateDayCellOffers(dayCell, offers)
-      })
+      // Only proceed if this is still the current fetch request
+      if (!signal.aborted) {
+        // Update each day cell with its offers
+        dayCells.forEach((dayCell, index) => {
+          const dateString = weekDates[index]
+          const offers = weekOffers[dateString] || []
+          updateDayCellOffers(dayCell, offers)
+        })
+      }
     }
   } catch (error) {
     // Only show error if it's not an abort error
