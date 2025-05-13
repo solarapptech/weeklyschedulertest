@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Weekly Offer Scheduler</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>Weekly Offers</h1>
+      <div class="date-display">
+        <span id="dateRange"></span>
+      </div>
+      <div class="products-info">
+        <span id="productsCount">Loading products...</span>
+      </div>
+      <div class="products-info">
+        <span id="onlineProductsCount">Online Products: 0</span>
+      </div>
+      <div class="navigation">
+        <button id="prevWeek" class="nav-button">
+          <span class="arrow">&#8249;</span> Previous Week
+        </button>
+        <button id="currentWeek" class="nav-button">Today</button>
+        <button id="nextWeek" class="nav-button">
+          Next Week <span class="arrow">&#8250;</span>
+        </button>
+      </div>
+    </header>
+
+    <div class="calendar">
+      <div class="weekdays">
+        <div class="weekday">Monday</div>
+        <div class="weekday">Tuesday</div>
+        <div class="weekday">Wednesday</div>
+        <div class="weekday">Thursday</div>
+        <div class="weekday">Friday</div>
+        <div class="weekday">Saturday</div>
+        <div class="weekday">Sunday</div>
+      </div>
+      <div id="calendar-grid" class="calendar-grid"></div>
+    </div>
+
+    <div id="offer-modal" class="modal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2 id="modal-title">Add Offer</h2>
+          <button id="close-modal" class="close-button">&times;</button>
+        </div>
+        <form id="offer-form">
+          <input type="hidden" id="edit-id" value="" />
+          <input type="hidden" id="offer-date" value="" />
+          
+          <div class="form-group">
+            <label for="product-select">Select Product</label>
+            <select id="product-select" required>
+              <option value="">Loading products...</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="offer-title">Offer Title</label>
+            <input type="text" id="offer-title" required placeholder="e.g., 20% Off All Items" />
+          </div>
+          
+          <div class="form-group">
+            <button type="button" id="product-attributes-btn" class="button secondary-button">
+              Product Attributes
+              <span class="arrow-right">&#8250;</span>
+            </button>
+          </div>
+          
+          <div class="form-row">
+            <div class="form-group">
+              <label for="offer-start">Start Time</label>
+              <input type="time" id="offer-start" required />
+            </div>
+            
+            <div class="form-group">
+              <label for="offer-end">End Time</label>
+              <input type="time" id="offer-end" required />
+            </div>
+          </div>
+          
+          <div class="form-group">
+            <label for="offer-color">Color</label>
+            <select id="offer-color">
+              <option value="blue">Blue</option>
+              <option value="green">Green</option>
+              <option value="orange">Orange</option>
+              <option value="purple">Purple</option>
+              <option value="red">Red</option>
+            </select>
+          </div>
+          
+          <div class="form-actions">
+            <button type="button" id="delete-offer" class="button delete-button">Delete</button>
+            <button type="submit" class="button primary-button">Save Offer</button>
+          </div>
+        </form>
+        <div id="attributes-form" class="attributes-form">
+          <div class="modal-header">
+            <h2>Card Attributes</h2>
+            <button id="back-to-main" class="back-button">
+              <span class="arrow-left">&#8249;</span> Back
+            </button>
+          </div>
+          
+          <div id="attributes-form-content">
+            <div class="card-preview">
+              <img id="card-image" src="http://localhost/lamac.com/wp-content/uploads/woocommerce-placeholder.png" alt="Card preview" />
+            </div>
+            
+            <div class="attributes-list">
+              <div class="attribute-item">
+                <span class="attribute-label">Card Number:</span>
+                <span id="card-number" class="attribute-value">-</span>
+              </div>
+              
+              <div class="attribute-item">
+                <span class="attribute-label">Language:</span>
+                <span id="card-language" class="attribute-value">-</span>
+              </div>
+              
+              <div class="attribute-item">
+                <span class="attribute-label">Rarity:</span>
+                <span id="card-rarity" class="attribute-value">-</span>
+              </div>
+              
+              <div class="attribute-item">
+                <span class="attribute-label">PSA Rating:</span>
+                <span id="card-psa-rating" class="attribute-value">-</span>
+              </div>
+              
+              <div class="attribute-item">
+                <span class="attribute-label">PSA Value:</span>
+                <span id="card-psa-value" class="attribute-value">-</span>
+              </div>
+              
+              <div class="attribute-item">
+                <span class="attribute-label">Value Percentage:</span>
+                <span id="card-value-percentage" class="attribute-value">-</span>
+              </div>
+              
+              <div class="attribute-item">
+                <span class="attribute-label">Views:</span>
+                <span id="card-view-count" class="attribute-value">-</span>
+              </div>
+              
+              <div class="attribute-item view-product">
+                <a id="product-permalink" href="#" target="_blank" class="button primary-button">View Product</a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="modal-backdrop" class="modal-backdrop"></div>
+
+  <!-- Add this before your script.js -->
+  <script type="text/javascript">
+    /* <![CDATA[ */
+    var wpApiSettings = {"root":"<?php echo esc_url_raw( rest_url() ); ?>","nonce":"<?php echo wp_create_nonce( 'wp_rest' ); ?>"};
+    /* ]]> */
+  </script>
+
+  <script src="script.js"></script>
+
+</body>
+</html>
